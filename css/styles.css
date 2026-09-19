@@ -84,6 +84,25 @@ body {
 .icon-btn.danger { color: var(--danger); }
 .icon-btn:active { transform: scale(0.96); }
 
+.topbar__actions { display: flex; align-items: center; gap: 8px; }
+#upload-btn { display: inline-block; text-align: center; }
+
+/* upload edit chrome */
+.upload-exit {
+  position: absolute; top: 14px; left: 14px; z-index: 5;
+  font-family: var(--font-round); font-weight: 700; font-size: 0.85rem;
+  background: rgba(26,20,24,0.72); color: #fff; border: none;
+  padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.upload-exit:active { transform: scale(0.96); }
+.upload-badge {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 5;
+  background: var(--teal); color: #fff;
+  font-family: var(--font-round); font-weight: 700; font-size: 0.85rem;
+  padding: 5px 16px; border-radius: 999px; box-shadow: var(--shadow);
+}
+
 /* ---------------- viewfinder ---------------- */
 .viewfinder {
   position: relative;

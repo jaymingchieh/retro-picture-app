@@ -1,5 +1,5 @@
 /* Retro Cam — service worker (offline app shell) */
-const CACHE = "retro-cam-v2";
+const CACHE = "retro-cam-v3";
 const ASSETS = [
   "./",
   "./index.html",
