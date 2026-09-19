@@ -159,6 +159,64 @@ body {
 .flash.is-on { animation: flash 0.18s ease-out; }
 @keyframes flash { 0% { opacity: 0.9; } 100% { opacity: 0; } }
 
+/* ---------------- countdown + shot counter ---------------- */
+.countdown {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-round); font-weight: 800;
+  font-size: 34vw; color: #fff;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  opacity: 0; pointer-events: none;
+  transform: scale(0.6);
+}
+.countdown.is-show { opacity: 0.95; transform: scale(1); transition: opacity .12s, transform .35s; }
+.shot-counter {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  background: var(--coral); color: #fff;
+  font-family: var(--font-round); font-weight: 700; font-size: 0.95rem;
+  padding: 5px 16px; border-radius: 999px; box-shadow: var(--shadow);
+}
+
+/* ---------------- mode toggle ---------------- */
+.mode-toggle {
+  display: flex; gap: 6px; justify-content: center;
+  padding: 10px 14px 2px; flex-shrink: 0;
+}
+.mode-btn {
+  font-family: var(--font-round); font-weight: 700;
+  background: var(--white); color: var(--ink-dim);
+  border: 2px solid transparent; padding: 8px 22px;
+  border-radius: 999px; font-size: 0.9rem; cursor: pointer;
+  box-shadow: 0 3px 8px rgba(120,70,80,0.12);
+}
+.mode-btn.is-active { color: var(--coral-d); border-color: var(--coral); background: var(--pink); }
+.mode-btn:active { transform: scale(0.96); }
+
+/* ---------------- four-cut options ---------------- */
+.four-opts {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 8px 18px 0; flex-shrink: 0;
+}
+.four-opts__row { display: flex; align-items: center; gap: 12px; }
+.four-opts__label {
+  font-family: var(--font-round); font-weight: 700;
+  font-size: 0.8rem; color: var(--ink-dim); width: 40px; flex-shrink: 0;
+}
+.seg { display: inline-flex; border: 2px solid var(--coral); border-radius: 999px; overflow: hidden; }
+.seg-btn {
+  font-family: var(--font-round); font-weight: 700; font-size: 0.82rem;
+  background: transparent; color: var(--ink-dim); border: none;
+  padding: 6px 16px; cursor: pointer;
+}
+.seg-btn.is-active { background: var(--coral); color: #fff; }
+.frames { display: flex; gap: 8px; }
+.frame-swatch {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.15); cursor: pointer; padding: 0;
+  box-shadow: 0 2px 5px rgba(120,70,80,0.15);
+}
+.frame-swatch.is-active { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(255,122,122,0.35); }
+
 /* ---------------- filter strip ---------------- */
 .filters {
   display: flex; gap: 8px;

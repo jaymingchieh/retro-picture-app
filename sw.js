@@ -1,11 +1,12 @@
 /* Retro Cam — service worker (offline app shell) */
-const CACHE = "retro-cam-v1";
+const CACHE = "retro-cam-v2";
 const ASSETS = [
   "./",
   "./index.html",
   "./css/styles.css",
   "./js/db.js",
   "./js/filters.js",
+  "./js/collage.js",
   "./js/camera.js",
   "./js/app.js",
   "./manifest.webmanifest",
