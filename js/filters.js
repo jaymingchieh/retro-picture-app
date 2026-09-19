@@ -161,6 +161,10 @@
         ctx.fillRect(ix, iy, iw, ih);
       }
     }
+    // user-selected light-leak / flare overlay (independent of filter strength)
+    if (opts.overlay && opts.overlay !== "none" && window.RetroLeaks) {
+      window.RetroLeaks.apply(ctx, opts.overlay, ix, iy, iw, ih, opts.overlayStrength);
+    }
     ctx.restore(); // end clip
 
     // date stamp
