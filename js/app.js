@@ -27,6 +27,7 @@
   let strength = 1;
   let running = false;
   let rafId = null;
+  let capturing = false;
 
   /* ---------------- toast ---------------- */
   let toastTimer;
@@ -55,6 +56,55 @@
   });
 
   strengthEl.addEventListener("input", () => { strength = +strengthEl.value / 100; });
+
+  /* ---------------- mode + four-cut options ---------------- */
+  let mode = "single"; // 'single' | 'four'
+  const fourOpts = { layout: "strip", frame: "cream" };
+  const fourOptsEl = $("#four-opts");
+  const countdownEl = $("#countdown");
+  const shotCounterEl = $("#shot-counter");
+
+  document.querySelectorAll(".mode-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (capturing) return;
+      mode = btn.dataset.mode;
+      document.querySelectorAll(".mode-btn").forEach((b) => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      fourOptsEl.hidden = mode !== "four";
+    });
+  });
+
+  // layout segmented control
+  const layoutSeg = $("#layout-seg");
+  window.RetroCollage.LAYOUTS.forEach((l, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "seg-btn" + (l.id === fourOpts.layout ? " is-active" : "");
+    b.textContent = l.label;
+    b.addEventListener("click", () => {
+      fourOpts.layout = l.id;
+      layoutSeg.querySelectorAll(".seg-btn").forEach((x) => x.classList.remove("is-active"));
+      b.classList.add("is-active");
+    });
+    layoutSeg.appendChild(b);
+  });
+
+  // frame color swatches
+  const frameSeg = $("#frame-seg");
+  window.RetroCollage.FRAMES.forEach((f) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "frame-swatch" + (f.id === fourOpts.frame ? " is-active" : "");
+    b.style.background = f.bg;
+    b.title = f.label;
+    b.setAttribute("aria-label", "相框：" + f.label);
+    b.addEventListener("click", () => {
+      fourOpts.frame = f.id;
+      frameSeg.querySelectorAll(".frame-swatch").forEach((x) => x.classList.remove("is-active"));
+      b.classList.add("is-active");
+    });
+    frameSeg.appendChild(b);
+  });
 
   /* ---------------- date label ---------------- */
   (function setDateLabel() {
@@ -130,33 +180,90 @@
   });
 
   /* ---------------- capture ---------------- */
-  shutterBtn.addEventListener("click", capture);
+  shutterBtn.addEventListener("click", () => {
+    if (!running || capturing) return;
+    if (mode === "four") captureFourCut();
+    else captureSingle();
+  });
 
-  async function capture() {
-    if (!running) return;
-    // full-res capture
+  // capture the current live frame with the active filter -> canvas
+  function captureFrameCanvas(withDate) {
     const { w, h } = cam.dimensions();
     const cap = document.createElement("canvas");
     cap.width = w; cap.height = h;
     const cctx = cap.getContext("2d");
     window.RetroFilters.draw(cctx, video, currentFilter, strength, {
-      date: true,
+      date: !!withDate,
       mirror: cam.isSelfie(),
     });
+    return cap;
+  }
 
-    // shutter flash + sound-less feedback
+  function shutterFlash() {
     flashEl.classList.add("is-on");
     setTimeout(() => flashEl.classList.remove("is-on"), 180);
+  }
 
-    const dataURL = cap.toDataURL("image/jpeg", 0.92);
+  async function saveAndThumb(dataURL, okMsg) {
     try {
       const item = await window.RetroDB.add(dataURL);
       setThumb(item.dataURL);
-      toast("已拍照 ✦");
+      toast(okMsg || "已拍照 ✦");
+      return item;
     } catch (err) {
-      // storage failed — still let them download
       toast("已拍照（相簿儲存失敗，請直接下載）");
       downloadDataURL(dataURL, filename());
+      return null;
+    }
+  }
+
+  async function captureSingle() {
+    const cap = captureFrameCanvas(true);
+    shutterFlash();
+    await saveAndThumb(cap.toDataURL("image/jpeg", 0.92));
+  }
+
+  const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  async function countdown(n) {
+    for (let i = n; i >= 1; i--) {
+      countdownEl.textContent = String(i);
+      countdownEl.classList.add("is-show");
+      await delay(650);
+      countdownEl.classList.remove("is-show");
+      await delay(120);
+    }
+  }
+
+  async function captureFourCut() {
+    capturing = true;
+    shutterBtn.disabled = true;
+    flipBtn.disabled = true;
+    shotCounterEl.hidden = false;
+    const shots = [];
+    try {
+      for (let i = 0; i < 4; i++) {
+        shotCounterEl.textContent = `${i + 1} / 4`;
+        await countdown(3);
+        shots.push(captureFrameCanvas(false));
+        shutterFlash();
+        if (i < 3) await delay(700);
+      }
+      const collage = window.RetroCollage.compose(shots, {
+        layout: fourOpts.layout,
+        frame: fourOpts.frame,
+      });
+      const dataURL = collage.toDataURL("image/jpeg", 0.92);
+      const item = await saveAndThumb(dataURL, "四格完成 ✦");
+      if (item) openViewer(item);
+    } catch (err) {
+      toast("四格拍攝失敗，請再試一次");
+    } finally {
+      capturing = false;
+      shotCounterEl.hidden = true;
+      countdownEl.classList.remove("is-show");
+      shutterBtn.disabled = false;
+      flipBtn.disabled = false;
     }
   }
 

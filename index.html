@@ -55,7 +55,29 @@
 
       <!-- shutter flash -->
       <div class="flash" id="flash" aria-hidden="true"></div>
+
+      <!-- four-cut countdown + progress -->
+      <div class="countdown" id="countdown" aria-hidden="true"></div>
+      <div class="shot-counter" id="shot-counter" hidden>1 / 4</div>
     </main>
+
+    <!-- ===== Mode toggle ===== -->
+    <div class="mode-toggle" role="group" aria-label="拍攝模式">
+      <button type="button" class="mode-btn is-active" data-mode="single">單張</button>
+      <button type="button" class="mode-btn" data-mode="four">四格拼貼</button>
+    </div>
+
+    <!-- ===== Four-cut options (only in four mode) ===== -->
+    <div class="four-opts" id="four-opts" hidden>
+      <div class="four-opts__row">
+        <span class="four-opts__label">版面</span>
+        <div class="seg" id="layout-seg"></div>
+      </div>
+      <div class="four-opts__row">
+        <span class="four-opts__label">相框</span>
+        <div class="frames" id="frame-seg"></div>
+      </div>
+    </div>
 
     <!-- ===== Filter strip ===== -->
     <nav class="filters" id="filters" aria-label="濾鏡"></nav>
@@ -109,6 +131,7 @@
 
   <script src="js/db.js"></script>
   <script src="js/filters.js"></script>
+  <script src="js/collage.js"></script>
   <script src="js/camera.js"></script>
   <script src="js/app.js"></script>
 </body>
