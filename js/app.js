@@ -28,6 +28,7 @@
   let running = false;
   let rafId = null;
   let capturing = false;
+  let uploadedImage = null; // when set, we are editing an uploaded photo
 
   /* ---------------- toast ---------------- */
   let toastTimer;
@@ -51,11 +52,15 @@
       b.classList.add("is-active");
       // ensure active chip scrolls into view
       b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+      if (uploadedImage) renderUploaded();
     });
     filtersNav.appendChild(b);
   });
 
-  strengthEl.addEventListener("input", () => { strength = +strengthEl.value / 100; });
+  strengthEl.addEventListener("input", () => {
+    strength = +strengthEl.value / 100;
+    if (uploadedImage) renderUploaded();
+  });
 
   /* ---------------- mode + four-cut options ---------------- */
   let mode = "single"; // 'single' | 'four'
@@ -67,6 +72,7 @@
   document.querySelectorAll(".mode-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       if (capturing) return;
+      if (uploadedImage) exitUpload();
       mode = btn.dataset.mode;
       document.querySelectorAll(".mode-btn").forEach((b) => b.classList.remove("is-active"));
       btn.classList.add("is-active");
@@ -168,20 +174,24 @@
   });
 
   // pause camera when tab hidden, resume when visible
+  let wasRunningBeforeHide = false;
   document.addEventListener("visibilitychange", () => {
+    if (uploadedImage) return; // don't disturb upload editing
     if (document.hidden) {
+      wasRunningBeforeHide = running;
       running = false;
       cancelAnimationFrame(rafId);
       cam.stop();
-    } else if (!overlay.classList.contains("is-hidden") === false) {
-      // was running before -> restart
-      if (shutterBtn.disabled === false) startCamera();
+    } else if (wasRunningBeforeHide) {
+      startCamera();
     }
   });
 
   /* ---------------- capture ---------------- */
   shutterBtn.addEventListener("click", () => {
-    if (!running || capturing) return;
+    if (capturing) return;
+    if (uploadedImage) { saveUploadedSingle(); return; }
+    if (!running) return;
     if (mode === "four") captureFourCut();
     else captureSingle();
   });
@@ -264,6 +274,137 @@
       countdownEl.classList.remove("is-show");
       shutterBtn.disabled = false;
       flipBtn.disabled = false;
+    }
+  }
+
+  /* ---------------- upload existing photos ---------------- */
+  const uploadInput = $("#upload-input");
+  const uploadExit = $("#upload-exit");
+  const uploadBadge = $("#upload-badge");
+  const MAX_EDGE = 1600;
+
+  function loadImageFromFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("圖片載入失敗"));
+        img.src = ev.target.result;
+      };
+      reader.onerror = () => reject(new Error("讀取檔案失敗"));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function fitDims(w, h, maxEdge) {
+    const scale = Math.min(1, maxEdge / Math.max(w, h));
+    return { w: Math.round(w * scale), h: Math.round(h * scale) };
+  }
+
+  // render an image (already loaded) filtered into an offscreen canvas
+  function renderImageToCanvas(img, withDate) {
+    const { w, h } = fitDims(img.naturalWidth, img.naturalHeight, MAX_EDGE);
+    const cv = document.createElement("canvas");
+    cv.width = w; cv.height = h;
+    window.RetroFilters.draw(cv.getContext("2d"), img, currentFilter, strength, {
+      date: !!withDate, mirror: false,
+    });
+    return cv;
+  }
+
+  uploadInput.addEventListener("change", async (e) => {
+    const files = Array.from(e.target.files || []);
+    uploadInput.value = ""; // allow re-selecting same file
+    if (!files.length) return;
+
+    if (mode === "four") {
+      if (files.length < 4) {
+        toast("四格需要選 4 張照片");
+        return;
+      }
+      await uploadFourCut(files.slice(0, 4));
+    } else {
+      try {
+        const img = await loadImageFromFile(files[0]);
+        enterUpload(img);
+      } catch (err) {
+        toast("無法載入這張照片");
+      }
+    }
+  });
+
+  function enterUpload(img) {
+    uploadedImage = img;
+    running = false;
+    cancelAnimationFrame(rafId);
+    // size preview canvas to the image
+    const { w, h } = fitDims(img.naturalWidth, img.naturalHeight, MAX_EDGE);
+    preview.width = w; preview.height = h;
+    preview.classList.add("is-visible");
+    overlay.classList.add("is-hidden");
+    placeholder.classList.add("is-hidden");
+    shutterBtn.disabled = false;
+    flipBtn.disabled = true;
+    uploadExit.hidden = false;
+    uploadBadge.hidden = false;
+    renderUploaded();
+  }
+
+  function renderUploaded() {
+    if (!uploadedImage) return;
+    window.RetroFilters.draw(pctx, uploadedImage, currentFilter, strength, {
+      date: false, mirror: false,
+    });
+  }
+
+  async function saveUploadedSingle() {
+    const cv = renderImageToCanvas(uploadedImage, true);
+    shutterFlash();
+    await saveAndThumb(cv.toDataURL("image/jpeg", 0.92), "已儲存 ✦");
+  }
+
+  function exitUpload() {
+    uploadedImage = null;
+    uploadExit.hidden = true;
+    uploadBadge.hidden = true;
+    if (cam.stream) {
+      // resume live camera
+      flipBtn.disabled = false;
+      sizePreview();
+      running = true;
+      cancelAnimationFrame(rafId);
+      loop();
+    } else {
+      // camera was never started -> back to the start overlay
+      preview.classList.remove("is-visible");
+      overlay.classList.remove("is-hidden");
+      shutterBtn.disabled = true;
+      flipBtn.disabled = true;
+      overlayMsg.textContent = "點下方按鈕開啟相機";
+      startBtn.disabled = false;
+      startBtn.textContent = "開啟相機";
+    }
+  }
+  uploadExit.addEventListener("click", exitUpload);
+
+  async function uploadFourCut(files) {
+    capturing = true;
+    shutterBtn.disabled = true;
+    try {
+      const imgs = [];
+      for (const f of files) imgs.push(await loadImageFromFile(f));
+      const shots = imgs.map((img) => renderImageToCanvas(img, false));
+      const collage = window.RetroCollage.compose(shots, {
+        layout: fourOpts.layout, frame: fourOpts.frame,
+      });
+      const item = await saveAndThumb(collage.toDataURL("image/jpeg", 0.92), "四格完成 ✦");
+      if (item) openViewer(item);
+    } catch (err) {
+      toast("四格合成失敗，請再試一次");
+    } finally {
+      capturing = false;
+      shutterBtn.disabled = running ? false : true;
     }
   }
 

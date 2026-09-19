@@ -27,7 +27,11 @@
         <span class="brand__dot" aria-hidden="true"></span>
         <span class="brand__name">RETRO<span>CAM</span></span>
       </div>
-      <button class="icon-btn" id="install-btn" hidden aria-label="安裝到主畫面">⬇︎ 安裝</button>
+      <div class="topbar__actions">
+        <label for="upload-input" class="icon-btn" id="upload-btn" aria-label="上傳照片">⬆︎ 上傳</label>
+        <input type="file" id="upload-input" accept="image/*" multiple hidden />
+        <button class="icon-btn" id="install-btn" hidden aria-label="安裝到主畫面">⬇︎ 安裝</button>
+      </div>
     </header>
 
     <!-- ===== Camera view ===== -->
@@ -59,6 +63,10 @@
       <!-- four-cut countdown + progress -->
       <div class="countdown" id="countdown" aria-hidden="true"></div>
       <div class="shot-counter" id="shot-counter" hidden>1 / 4</div>
+
+      <!-- upload edit mode: back-to-camera -->
+      <button class="upload-exit" id="upload-exit" hidden>✕ 回相機</button>
+      <div class="upload-badge" id="upload-badge" hidden>編輯上傳照片</div>
     </main>
 
     <!-- ===== Mode toggle ===== -->
