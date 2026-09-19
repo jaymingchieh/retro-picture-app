@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>80s Retro Studio ·「如果我活在80年代」AI 復古照片指令產生器</title>
+  <meta name="description" content="跟上爆紅的『如果我活在80年代』ChatGPT AI 復古照片風潮：點選年代、情境、妝髮與底片質感，一鍵產生完美指令，並套用80年代復古濾鏡預覽你的照片。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Sans+TC:wght@400;500;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="grid-floor" aria-hidden="true"></div>
+
+  <!-- ===== Header ===== -->
+  <header class="hero">
+    <p class="hero__kicker">✦ 1980s AI PHOTO TREND ✦</p>
+    <h1 class="hero__title">RETRO<span>STUDIO</span></h1>
+    <p class="hero__subtitle">「如果我活在80年代會是什麼樣子？」<br />AI 復古照片・指令產生器</p>
+    <p class="hero__desc">
+      跟上爆紅的 ChatGPT 復古生圖風潮。點一點就能組合出一段可直接貼到 ChatGPT 的完美指令，
+      再上傳照片套用 80 年代底片濾鏡，先感受那個蓬鬆大捲髮、濃眉紅唇、墊肩西裝的年代。
+    </p>
+  </header>
+
+  <main class="container">
+    <!-- ===== 指令產生器 ===== -->
+    <section class="panel" id="generator" aria-labelledby="gen-title">
+      <div class="panel__badge">STEP 01</div>
+      <h2 class="panel__title" id="gen-title">🎛️ 指令產生器</h2>
+      <p class="panel__hint">選擇你想要的風格，右側（手機為下方）會即時生成指令。</p>
+
+      <div class="gen-layout">
+        <!-- 選項欄 -->
+        <div class="gen-controls">
+          <div class="field">
+            <label for="opt-era">年代</label>
+            <select id="opt-era" data-opt="era"></select>
+          </div>
+
+          <div class="field">
+            <label for="opt-scene">情境 / 角色</label>
+            <select id="opt-scene" data-opt="scene"></select>
+          </div>
+
+          <div class="field">
+            <label for="opt-brow">眉型</label>
+            <select id="opt-brow" data-opt="brow"></select>
+          </div>
+
+          <div class="field">
+            <label for="opt-eye">眼影</label>
+            <select id="opt-eye" data-opt="eye"></select>
+          </div>
+
+          <div class="field">
+            <label for="opt-blush">腮紅</label>
+            <select id="opt-blush" data-opt="blush"></select>
+          </div>
+
+          <div class="field">
+            <label for="opt-lip">唇妝</label>
+            <select id="opt-lip" data-opt="lip"></select>
+          </div>
+
+          <div class="field">
+            <label for="opt-hair">髮型</label>
+            <select id="opt-hair" data-opt="hair"></select>
+          </div>
+
+          <div class="field">
+            <label for="opt-outfit">服裝</label>
+            <select id="opt-outfit" data-opt="outfit"></select>
+          </div>
+
+          <div class="field">
+            <label for="opt-film">底片 / 照片風格</label>
+            <select id="opt-film" data-opt="film"></select>
+          </div>
+
+          <label class="checkbox">
+            <input type="checkbox" id="opt-keepface" checked />
+            <span>保留我的主要五官與臉型特徵</span>
+          </label>
+
+          <label class="checkbox">
+            <input type="checkbox" id="opt-nomodern" checked />
+            <span>避免任何現代感元素，整體寫實自然</span>
+          </label>
+
+          <div class="lang-toggle" role="group" aria-label="指令語言">
+            <button type="button" class="lang-btn is-active" data-lang="zh">中文</button>
+            <button type="button" class="lang-btn" data-lang="en">English</button>
+          </div>
+        </div>
+
+        <!-- 輸出欄 -->
+        <div class="gen-output">
+          <div class="output__head">
+            <span class="output__label">✎ 你的 ChatGPT 指令</span>
+            <button type="button" id="copy-btn" class="btn btn--copy">📋 一鍵複製</button>
+          </div>
+          <textarea id="prompt-output" class="prompt-box" readonly spellcheck="false"></textarea>
+          <p class="output__tip">把上面的指令複製後貼到 ChatGPT，並上傳一張五官清楚、光線充足的個人照。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 濾鏡預覽 ===== -->
+    <section class="panel" id="filter" aria-labelledby="filter-title">
+      <div class="panel__badge">STEP 02</div>
+      <h2 class="panel__title" id="filter-title">📷 80 年代濾鏡預覽</h2>
+      <p class="panel__hint">上傳照片，套上暖黃褪色＋底片顆粒＋暈影，先感受年代氛圍（照片只在你的瀏覽器處理，不會上傳）。</p>
+
+      <div class="filter-layout">
+        <div class="filter-stage">
+          <canvas id="photo-canvas" class="photo-canvas"></canvas>
+          <div id="photo-placeholder" class="photo-placeholder">
+            <span class="photo-placeholder__icon">🖼️</span>
+            <span>尚未選擇照片</span>
+          </div>
+        </div>
+
+        <div class="filter-controls">
+          <label for="file-input" class="btn btn--upload">⬆️ 選擇照片</label>
+          <input type="file" id="file-input" accept="image/*" hidden />
+
+          <div class="field">
+            <label for="fx-preset">濾鏡風格</label>
+            <select id="fx-preset"></select>
+          </div>
+
+          <div class="slider">
+            <label for="fx-strength">濾鏡強度 <span id="fx-strength-val">100%</span></label>
+            <input type="range" id="fx-strength" min="0" max="100" value="100" />
+          </div>
+
+          <div class="slider">
+            <label for="fx-grain">底片顆粒 <span id="fx-grain-val">35%</span></label>
+            <input type="range" id="fx-grain" min="0" max="100" value="35" />
+          </div>
+
+          <div class="slider">
+            <label for="fx-vignette">暈影 <span id="fx-vignette-val">45%</span></label>
+            <input type="range" id="fx-vignette" min="0" max="100" value="45" />
+          </div>
+
+          <label class="checkbox">
+            <input type="checkbox" id="fx-date" checked />
+            <span>加上復古日期戳記</span>
+          </label>
+
+          <button type="button" id="download-btn" class="btn btn--download" disabled>💾 下載照片</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 使用說明 ===== -->
+    <section class="panel" id="howto" aria-labelledby="howto-title">
+      <div class="panel__badge">HOW&nbsp;TO</div>
+      <h2 class="panel__title" id="howto-title">📖 使用說明</h2>
+      <ol class="steps">
+        <li><strong>選風格：</strong>在指令產生器挑選年代、情境、妝髮與底片質感。</li>
+        <li><strong>複製指令：</strong>按「一鍵複製」，把生成的指令複製起來。</li>
+        <li><strong>貼到 ChatGPT：</strong>開啟 ChatGPT，貼上指令，並上傳一張五官清楚、光線充足、臉部沒有過度遮擋的個人照。</li>
+        <li><strong>微調：</strong>不滿意可以換情境（例如「80年代香港電影女主角」）或調整妝髮再生成一次。</li>
+        <li><strong>玩濾鏡：</strong>也可以在本站上傳照片，直接套用 80 年代復古濾鏡下載留念。</li>
+      </ol>
+      <p class="howto__note">💡 妝髮小提醒：80 年代的關鍵是「濃眉、有存在感的眼影腮紅、紅唇，以及蓬鬆的大波浪髮型」。</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>RETRO STUDIO ✦ 一個純前端的復古照片小工具</p>
+    <p class="footer__credit">發想自 ChatGPT「如果我活在80年代」AI 復古照片風潮</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
