@@ -24,6 +24,7 @@
   const FILTERS = window.RetroFilters.list;
 
   let currentFilter = FILTERS[0];
+  let currentLeak = "none";
   let strength = 1;
   let running = false;
   let rafId = null;
@@ -55,6 +56,23 @@
       if (uploadedImage) renderUploaded();
     });
     filtersNav.appendChild(b);
+  });
+
+  /* ---------------- light-leak / flare strip ---------------- */
+  const leaksNav = $("#leaks");
+  window.RetroLeaks.list.forEach((l) => {
+    const b = document.createElement("button");
+    b.className = "filter-chip leak-chip" + (l.id === currentLeak ? " is-active" : "");
+    b.textContent = l.name;
+    b.dataset.id = l.id;
+    b.addEventListener("click", () => {
+      currentLeak = l.id;
+      leaksNav.querySelectorAll(".leak-chip").forEach((c) => c.classList.remove("is-active"));
+      b.classList.add("is-active");
+      b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+      if (uploadedImage) renderUploaded();
+    });
+    leaksNav.appendChild(b);
   });
 
   strengthEl.addEventListener("input", () => {
@@ -133,6 +151,7 @@
       window.RetroFilters.draw(pctx, video, currentFilter, strength, {
         date: false,               // live view keeps date subtle via chrome; stamp burned on capture
         mirror: cam.isSelfie(),
+        overlay: currentLeak,
       });
     }
     rafId = requestAnimationFrame(loop);
@@ -205,6 +224,7 @@
     window.RetroFilters.draw(cctx, video, currentFilter, strength, {
       date: !!withDate,
       mirror: cam.isSelfie(),
+      overlay: currentLeak,
     });
     return cap;
   }
@@ -308,7 +328,7 @@
     const cv = document.createElement("canvas");
     cv.width = w; cv.height = h;
     window.RetroFilters.draw(cv.getContext("2d"), img, currentFilter, strength, {
-      date: !!withDate, mirror: false,
+      date: !!withDate, mirror: false, overlay: currentLeak,
     });
     return cv;
   }
@@ -354,7 +374,7 @@
   function renderUploaded() {
     if (!uploadedImage) return;
     window.RetroFilters.draw(pctx, uploadedImage, currentFilter, strength, {
-      date: false, mirror: false,
+      date: false, mirror: false, overlay: currentLeak,
     });
   }
 

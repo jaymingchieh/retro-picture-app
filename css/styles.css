@@ -243,8 +243,17 @@ body {
   padding: 10px 14px 4px;
   flex-shrink: 0;
   scrollbar-width: none;
+  align-items: center;
 }
 .filters::-webkit-scrollbar { display: none; }
+.leaks-row { padding-top: 6px; padding-bottom: 2px; }
+.leaks-row__label {
+  flex: 0 0 auto;
+  font-family: var(--font-round); font-weight: 700;
+  font-size: 0.78rem; color: var(--ink-dim);
+  padding-right: 2px; white-space: nowrap;
+}
+.leak-chip.is-active { color: #b06a2a; border-color: var(--amber); background: #fff2d8; }
 .filter-chip {
   flex: 0 0 auto;
   font-family: var(--font-round); font-weight: 700;
